@@ -1,16 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>Index.html</title>
-    
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
-<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>GPUcloud.store – One stop shop for your HPC needs</title>
@@ -958,7 +947,7 @@
             </div>
           </div>
 
-          <form class="contact-form" onsubmit="handleFormSubmit(event)">
+          <form id="contactForm" class="contact-form" onsubmit="handleFormSubmit(event)" novalidate>
             <div class="form-row two">
               <div>
                 <label for="name">Name</label>
@@ -994,15 +983,15 @@
             </div>
 
             <div class="form-hint">
-              This form doesn’t send anything yet – you can wire it up to your
-              preferred backend, email service, or no-code form handler.
+              This form sends submissions to a serverless endpoint on this site which can forward to email.
             </div>
 
-            <button type="submit" class="btn-primary">
-              Send message
-            </button>
+            <!-- visible form status feedback -->
+            <div class="form-status" aria-live="polite"></div>
 
-            <div id="form-status" class="form-status"></div>
+            <div style="margin-top: 0.6rem;">
+              <button id="contactSubmit" class="btn-primary" type="submit">Send message</button>
+            </div>
           </form>
         </div>
       </section>
@@ -1010,52 +999,91 @@
 
     <footer>
       <div class="footer-inner">
-        <div>© <span id="year"></span> GPUcloud.store</div>
+        <div>© GPUcloud.store</div>
         <div class="footer-links">
-          <a href="#hero">Top</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
+          <a href="mailto:shrey@gpucloud.store">Email</a>
         </div>
       </div>
     </footer>
   </div>
 
   <script>
-    // Smooth scroll helper
+    // Smooth scroll helper used by CTA buttons
     function scrollToSection(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      try {
+        var el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (err) {
+        console.warn('scroll error', err);
       }
     }
 
-    // Footer year
-    document.getElementById("year").textContent = new Date().getFullYear();
+    // Client form handler: posts JSON to /api/contact and shows inline status
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      var form = document.getElementById('contactForm');
+      var statusEl = form.querySelector('.form-status');
+      var submitBtn = document.getElementById('contactSubmit');
 
-    // Dummy form handler (front-end only, you can replace with real submission)
-    function handleFormSubmit(event) {
-      event.preventDefault();
-      const statusEl = document.getElementById("form-status");
-      const form = event.target;
+      // Clear previous status
+      statusEl.textContent = '';
+      statusEl.classList.remove('error', 'success');
 
-      const name = form.name.value.trim();
-      const email = form.email.value.trim();
-      const message = form.message.value.trim();
-
+      // Basic client validation (HTML also enforces required)
+      var name = form.name.value.trim();
+      var email = form.email.value.trim();
+      var message = form.message.value.trim();
       if (!name || !email || !message) {
-        statusEl.textContent = "Please fill in the required fields.";
-        statusEl.className = "form-status error";
+        statusEl.textContent = 'Please fill in name, email and message.';
+        statusEl.classList.add('error');
         return;
       }
 
-      statusEl.textContent =
-        "Thanks for reaching out. Once this form is wired to a backend, your message will be sent.";
-      statusEl.className = "form-status success";
+      // Disable submit while sending
+      submitBtn.disabled = true;
+      submitBtn.setAttribute('aria-busy', 'true');
+      var originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Sending…';
+
+      try {
+        var payload = {
+          name: name,
+          company: form.company.value.trim(),
+          email: email,
+          role: form.role.value.trim(),
+          message: message
+        };
+
+        var resp = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (resp.ok) {
+          statusEl.textContent = 'Thanks — your message was sent.';
+          statusEl.classList.add('success');
+          form.reset();
+        } else {
+          // try parse error detail
+          var info = {};
+          try { info = await resp.json(); } catch (err) { info = { error: 'Unexpected response' }; }
+          statusEl.textContent = info.error ? info.error : 'Submission failed. Please try again.';
+          statusEl.classList.add('error');
+          console.warn('contact error detail', info);
+        }
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Network error. Please try again later.';
+        statusEl.classList.add('error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.removeAttribute('aria-busy');
+        submitBtn.textContent = originalText;
+      }
     }
   </script>
 </body>
-</html>
-    
-  </body>
-  
 </html>
