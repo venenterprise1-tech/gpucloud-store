@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/style';
 
@@ -24,35 +26,37 @@ interface ContactFormProps {
   };
 }
 
+interface ContactFormData {
+  name: string;
+  company?: string;
+  email: string;
+  role?: string;
+  message: string;
+}
+
 export function ContactForm({ translations }: ContactFormProps) {
   const [formStatus, setFormStatus] = useState<{
     type: 'idle' | 'loading' | 'success' | 'error';
     message: string;
   }>({ type: 'idle', message: '' });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm<ContactFormData>();
 
-    const name = formData.get('name')?.toString().trim() || '';
-    const email = formData.get('email')?.toString().trim() || '';
-    const message = formData.get('message')?.toString().trim() || '';
-
-    if (!name || !email || !message) {
-      setFormStatus({ type: 'error', message: translations.error });
-      return;
-    }
-
+  const onSubmit = async (data: ContactFormData) => {
     setFormStatus({ type: 'loading', message: '' });
 
     try {
       const payload = {
-        name,
-        company: formData.get('company')?.toString().trim() || '',
-        email,
-        role: formData.get('role')?.toString().trim() || '',
-        message
+        name: data.name.trim(),
+        company: data.company?.trim() || '',
+        email: data.email.trim(),
+        role: data.role?.trim() || '',
+        message: data.message.trim()
       };
 
       const response = await fetch('/api/contact', {
@@ -63,12 +67,12 @@ export function ContactForm({ translations }: ContactFormProps) {
 
       if (response.ok) {
         setFormStatus({ type: 'success', message: translations.success });
-        form.reset();
+        reset();
       } else {
         let errorMessage = translations.submitError;
         try {
-          const data = await response.json();
-          if (data.error) errorMessage = data.error;
+          const responseData = await response.json();
+          if (responseData.error) errorMessage = responseData.error;
         } catch (err) {
           // Use default error message
         }
@@ -82,91 +86,107 @@ export function ContactForm({ translations }: ContactFormProps) {
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       className="rounded-2xl border border-cyan-400/40 bg-linear-to-br from-cyan-950/40 via-slate-950/60 to-purple-950/40 p-5 shadow-[0_0_22px_rgba(0,255,255,0.45),0_0_40px_rgba(0,0,0,1)]"
     >
       <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label
+          <Label
             htmlFor="name"
             className="mb-1.5 block text-xs tracking-widest text-cyan-300 uppercase"
           >
             {translations.name.label}
-          </label>
+          </Label>
           <Input
             id="name"
-            name="name"
             type="text"
             placeholder={translations.name.placeholder}
-            required
             className="border-cyan-400/50 bg-slate-950/90 text-slate-100 placeholder:text-slate-500 focus-visible:border-pink-500/90 focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.7),0_0_28px_rgba(0,0,0,1)] focus-visible:ring-pink-500/90"
+            {...register('name', {
+              required: translations.error
+            })}
           />
+          {errors.name && (
+            <p className="mt-1 text-xs text-pink-300">{errors.name.message}</p>
+          )}
         </div>
         <div>
-          <label
+          <Label
             htmlFor="company"
             className="mb-1.5 block text-xs tracking-widest text-cyan-300 uppercase"
           >
             {translations.company.label}
-          </label>
+          </Label>
           <Input
             id="company"
-            name="company"
             type="text"
             placeholder={translations.company.placeholder}
             className="border-cyan-400/50 bg-slate-950/90 text-slate-100 placeholder:text-slate-500 focus-visible:border-pink-500/90 focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.7),0_0_28px_rgba(0,0,0,1)] focus-visible:ring-pink-500/90"
+            {...register('company')}
           />
         </div>
       </div>
 
       <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label
+          <Label
             htmlFor="email"
             className="mb-1.5 block text-xs tracking-widest text-cyan-300 uppercase"
           >
             {translations.email.label}
-          </label>
+          </Label>
           <Input
             id="email"
-            name="email"
             type="email"
             placeholder={translations.email.placeholder}
-            required
             className="border-cyan-400/50 bg-slate-950/90 text-slate-100 placeholder:text-slate-500 focus-visible:border-pink-500/90 focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.7),0_0_28px_rgba(0,0,0,1)] focus-visible:ring-pink-500/90"
+            {...register('email', {
+              required: translations.error,
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Invalid email address'
+              }
+            })}
           />
+          {errors.email && (
+            <p className="mt-1 text-xs text-pink-300">{errors.email.message}</p>
+          )}
         </div>
         <div>
-          <label
+          <Label
             htmlFor="role"
             className="mb-1.5 block text-xs tracking-widest text-cyan-300 uppercase"
           >
             {translations.role.label}
-          </label>
+          </Label>
           <Input
             id="role"
-            name="role"
             type="text"
             placeholder={translations.role.placeholder}
             className="border-cyan-400/50 bg-slate-950/90 text-slate-100 placeholder:text-slate-500 focus-visible:border-pink-500/90 focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.7),0_0_28px_rgba(0,0,0,1)] focus-visible:ring-pink-500/90"
+            {...register('role')}
           />
         </div>
       </div>
 
       <div className="mb-4">
-        <label
+        <Label
           htmlFor="message"
           className="mb-1.5 block text-xs tracking-widest text-cyan-300 uppercase"
         >
           {translations.message.label}
-        </label>
+        </Label>
         <Textarea
           id="message"
-          name="message"
           placeholder={translations.message.placeholder}
-          required
           className="min-h-[120px] border-cyan-400/50 bg-slate-950/90 text-slate-100 placeholder:text-slate-500 focus-visible:border-pink-500/90 focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.7),0_0_28px_rgba(0,0,0,1)] focus-visible:ring-pink-500/90"
+          {...register('message', {
+            required: translations.error
+          })}
         />
+        {errors.message && (
+          <p className="mt-1 text-xs text-pink-300">{errors.message.message}</p>
+        )}
       </div>
 
       <div className="mb-4 text-xs text-slate-400">{translations.hint}</div>
@@ -187,12 +207,10 @@ export function ContactForm({ translations }: ContactFormProps) {
 
       <Button
         type="submit"
-        disabled={formStatus.type === 'loading'}
+        disabled={isSubmitting}
         className="rounded-full bg-linear-to-br from-cyan-400 to-blue-600 px-6 py-3 text-sm tracking-widest text-slate-950 uppercase shadow-[0_0_22px_rgba(0,255,255,0.9),0_0_46px_rgba(0,0,0,0.9)] transition-all duration-200 hover:from-cyan-400 hover:to-pink-500 hover:shadow-[0_0_30px_rgba(0,255,255,1),0_0_52px_rgba(0,0,0,1)]"
       >
-        {formStatus.type === 'loading'
-          ? translations.submitting
-          : translations.submit}
+        {isSubmitting ? translations.submitting : translations.submit}
       </Button>
     </form>
   );
