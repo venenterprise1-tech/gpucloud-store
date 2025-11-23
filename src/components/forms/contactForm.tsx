@@ -53,9 +53,9 @@ export function ContactForm({ translations }: ContactFormProps) {
     try {
       const payload = {
         name: data.name.trim(),
-        company: data.company?.trim() || '',
+        company: data.company?.trim() ?? '',
         email: data.email.trim(),
-        role: data.role?.trim() || '',
+        role: data.role?.trim() ?? '',
         message: data.message.trim()
       };
 
@@ -71,7 +71,7 @@ export function ContactForm({ translations }: ContactFormProps) {
       } else {
         let errorMessage = translations.submitError;
         try {
-          const responseData = await response.json();
+          const responseData = (await response.json()) as { error?: string };
           if (responseData.error) errorMessage = responseData.error;
         } catch (err) {
           // Use default error message

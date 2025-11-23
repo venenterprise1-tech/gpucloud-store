@@ -10,7 +10,7 @@ import LanguagePicker from './languagePicker';
 import { CustomLink } from './links';
 import useLinks from './useLinks';
 
-type NavBarProps = {};
+type NavBarProps = object;
 
 export default function NavBar({}: NavBarProps) {
   const skipRef = useRef<HTMLElement>(null);
@@ -104,7 +104,7 @@ export default function NavBar({}: NavBarProps) {
             </div>
           }
           {links.map(link => {
-            const highlightedLink = visibilities.anchors[0] || '';
+            const highlightedLink = visibilities.anchors[0] ?? '';
 
             return (
               <CustomLink
@@ -149,14 +149,14 @@ export default function NavBar({}: NavBarProps) {
             </div>
           </>
         )}
-        {!heroIsVisible && (
+        {/* {!heroIsVisible && (
           <NewsLetterButton
             //@ts-ignore
             ref={skipRef}
             variant="default"
             className="bg-slate-900 text-slate-50 shadow hover:bg-slate-900/90 dark:bg-slate-900 dark:text-slate-50 dark:hover:bg-slate-900/90"
           />
-        )}
+        )} */}
       </div>
     </nav>
   );
