@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { Config } from 'tailwindcss';
 import defaultTheme from 'tailwindcss/defaultTheme';
@@ -12,13 +11,6 @@ const config = {
     './app/**/*.{ts,tsx,js,jsx}'
   ],
   theme: {
-    colors: {
-      active: '#007ace',
-      transparent: 'transparent',
-      danger: '#eb3011',
-      warning: '#dece22',
-      success: '#23a76b'
-    },
     container: {
       center: true,
       padding: '2rem',
@@ -28,7 +20,7 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-geist-sans)', ...defaultTheme.fontFamily.sans]
+        sans: ['var(--font-body)', ...defaultTheme.fontFamily.sans]
       }
     }
   },

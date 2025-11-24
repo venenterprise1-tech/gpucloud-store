@@ -3,15 +3,17 @@ import { create } from 'zustand';
 
 import { linksConfig } from '@/components/layout-navigation/links';
 import type { NavLinks } from '@/components/layout-navigation/useLinks';
+import {
+  isSupportedTheme,
+  type SupportedTheme
+} from '@/components/useThemeMode';
 
 type IndependentVisibilities = 'hero';
 type BlockingVisibilities = 'anchors';
 
-type Themes = 'light' | 'dark';
-
 export interface UIStoreState {
-  theme: Themes;
-  setTheme: (theme: Themes) => void;
+  theme: SupportedTheme;
+  setTheme: (theme: string) => boolean;
   visibilities: {
     [K in IndependentVisibilities]: boolean;
   } & { [K in BlockingVisibilities]: Array<string> };
@@ -25,7 +27,12 @@ export interface UIStoreState {
 export const useUIStore = create<UIStoreState>((set, _get) => ({
   theme: 'dark',
   setTheme: theme => {
-    set({ theme });
+    if (isSupportedTheme(theme)) {
+      set({ theme });
+      return true;
+    }
+
+    return false;
   },
   visibilities: {
     hero: true,

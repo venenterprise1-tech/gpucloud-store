@@ -1,25 +1,20 @@
 'use client';
 
 import { GoogleTagManager } from '@next/third-parties/google';
-import { Inter as FontSans } from 'next/font/google';
 import { use } from 'react';
 
 import PreloadGaConsent from '@/components/consent/preloadGaConsent';
 // import useCookieConsentBanner from "@/components/consent/useCookieConsentBanner";
 // import NavBar from '@/components/layout-navigation/navbar';
 import ProvidersClient from '@/components/providersClient';
-import useDarkMode from '@/components/useDarkMode';
+import useThemeMode from '@/components/useThemeMode';
 import type { SupportedLocale } from '@/i18n';
 import { cn } from '@/lib/style';
 
 import '../../../styles/globals.css';
+import { fontBody, fontDisplay, fontMono, fontUi } from '../../fonts';
 
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID ?? '';
-
-const fontSans = FontSans({
-  subsets: ['latin'],
-  variable: '--font-sans'
-});
 
 type ClientRootLayoutProps = {
   children: React.ReactNode;
@@ -32,18 +27,22 @@ export default function ClientRootLayout({
 }: ClientRootLayoutProps) {
   const { locale } = use(params);
 
-  // useDarkMode();
+  useThemeMode();
   // useCommandPalette({ links });
   // useCookieConsentBanner("COOKIE_CONSENT");
 
   return (
-    <html lang={locale}>
-      <body
-        className={cn(
-          'bg-background min-h-screen font-sans antialiased',
-          fontSans.variable
-        )}
-      >
+    <html
+      lang={locale}
+      className={[
+        fontDisplay.variable,
+        fontUi.variable,
+        fontBody.variable,
+        fontMono.variable
+      ].join(' ')}
+      data-theme="dark"
+    >
+      <body className={cn('bg-background min-h-screen font-sans antialiased')}>
         <PreloadGaConsent consentCookieName="COOKIE_CONSENT" />
         <GoogleTagManager gtmId={gtmId} />
         <ProvidersClient>

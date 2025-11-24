@@ -2,14 +2,22 @@
 // @ts-nocheck
 'use client';
 
-import type { Container, SingleOrMultiple } from '@tsparticles/engine';
+import type { Container, Engine } from '@tsparticles/engine';
+import { loadEmittersPlugin } from '@tsparticles/plugin-emitters';
 import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import { motion, useAnimation } from 'motion/react';
-import React, { useId, useMemo } from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 
 import { cn } from '@/lib/style';
+
+type AttractorConfig = {
+  x?: number; // percent (0-100)
+  y?: number;
+  distance?: number;
+  rotateX?: number;
+  rotateY?: number;
+};
 
 type ParticlesProps = {
   id?: string;
@@ -21,6 +29,8 @@ type ParticlesProps = {
   speed?: number;
   particleColor?: string;
   particleDensity?: number;
+  attractor?: AttractorConfig;
+  fadeBottom?: boolean;
 };
 export const Motes = (props: ParticlesProps) => {
   const {
@@ -31,21 +41,29 @@ export const Motes = (props: ParticlesProps) => {
     maxSize,
     speed,
     particleColor,
-    particleDensity
+    particleDensity,
+    attractor,
+    fadeBottom
   } = props;
   const [init, setInit] = useState(false);
   useEffect(() => {
-    initParticlesEngine(async engine => {
+    void initParticlesEngine(async (engine: Engine) => {
       await loadSlim(engine);
-    }).then(() => {
-      setInit(true);
-    });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      await loadEmittersPlugin(engine);
+    })
+      .then(() => {
+        setInit(true);
+      })
+      .catch(error => {
+        console.error('Failed to initialize particles engine', error);
+      });
   }, []);
   const controls = useAnimation();
 
   const particlesLoaded = async (container?: Container) => {
     if (container) {
-      controls.start({
+      await controls.start({
         opacity: 1,
         transition: {
           duration: 1
@@ -55,17 +73,41 @@ export const Motes = (props: ParticlesProps) => {
   };
 
   const generatedId = useId();
+  const maskStyles = fadeBottom
+    ? {
+        maskImage:
+          'linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+        WebkitMaskImage:
+          'linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)'
+      }
+    : undefined;
+
+  const baseSpeed = props.speed ?? 0.6;
+  const moveSpeed = attractor
+    ? {
+        min: Math.max(0.05, baseSpeed * 0.15),
+        max: Math.max(0.1, baseSpeed * 0.5)
+      }
+    : {
+        min: Math.max(0.05, baseSpeed * 0.6),
+        max: Math.max(0.1, baseSpeed)
+      };
+
   return (
-    <motion.div animate={controls} className={cn('opacity-0', className)}>
+    <motion.div
+      animate={controls}
+      className={cn('opacity-0', className)}
+      style={maskStyles}
+    >
       {init && (
         <Particles
-          id={id || generatedId}
+          id={id ?? generatedId}
           className={cn('h-full w-full')}
           particlesLoaded={particlesLoaded}
           options={{
             background: {
               color: {
-                value: background || '#0d47a1'
+                value: background ?? '#0d47a1'
               }
             },
             fullScreen: {
@@ -84,7 +126,7 @@ export const Motes = (props: ParticlesProps) => {
                   enable: false,
                   mode: 'repulse'
                 },
-                resize: true as any
+                resize: true
               },
               modes: {
                 push: {
@@ -126,7 +168,7 @@ export const Motes = (props: ParticlesProps) => {
                 }
               },
               color: {
-                value: particleColor || '#ffffff',
+                value: particleColor ?? '#ffffff',
                 animation: {
                   h: {
                     count: 0,
@@ -161,25 +203,25 @@ export const Motes = (props: ParticlesProps) => {
                 close: true,
                 fill: true,
                 options: {},
-                type: {} as SingleOrMultiple<string> | undefined
+                type: undefined
               },
               groups: {},
               move: {
                 angle: {
                   offset: 0,
-                  value: 90
+                  value: attractor ? 45 : 90
                 },
                 attract: {
                   distance: 200,
-                  enable: false,
+                  enable: Boolean(attractor),
                   rotate: {
-                    x: 3000,
-                    y: 3000
+                    x: attractor?.rotateX ?? 800,
+                    y: attractor?.rotateY ?? 1600
                   }
                 },
                 center: {
-                  x: 50,
-                  y: 50,
+                  x: attractor?.x ?? 50,
+                  y: attractor?.y ?? 50,
                   mode: 'percent',
                   radius: 0
                 },
@@ -205,12 +247,9 @@ export const Motes = (props: ParticlesProps) => {
                 outModes: {
                   default: 'out'
                 },
-                random: false,
+                random: Boolean(attractor),
                 size: false,
-                speed: {
-                  min: 0.1,
-                  max: 1
-                },
+                speed: moveSpeed,
                 spin: {
                   acceleration: 0,
                   enable: false
@@ -234,7 +273,7 @@ export const Motes = (props: ParticlesProps) => {
                   mode: 'delete',
                   value: 0
                 },
-                value: particleDensity || 120
+                value: particleDensity ?? 120
               },
               opacity: {
                 value: {
@@ -244,7 +283,7 @@ export const Motes = (props: ParticlesProps) => {
                 animation: {
                   count: 0,
                   enable: true,
-                  speed: speed || 4,
+                  speed: speed ?? 4,
                   decay: 0,
                   delay: 0,
                   sync: false,
@@ -273,8 +312,8 @@ export const Motes = (props: ParticlesProps) => {
               },
               size: {
                 value: {
-                  min: minSize || 1,
-                  max: maxSize || 3
+                  min: minSize ?? 1,
+                  max: maxSize ?? 3
                 },
                 animation: {
                   count: 0,
@@ -431,6 +470,32 @@ export const Motes = (props: ParticlesProps) => {
             },
             detectRetina: true
           }}
+          emitters={
+            attractor
+              ? [
+                  {
+                    position: {
+                      x: attractor.x ?? 50,
+                      y: attractor.y ?? 15
+                    },
+                    size: {
+                      width: 20,
+                      height: 10,
+                      mode: 'percent'
+                    },
+                    rate: {
+                      quantity: 2,
+                      delay: 0.15
+                    },
+                    life: {
+                      count: 0,
+                      delay: 0,
+                      duration: 0.6
+                    }
+                  }
+                ]
+              : undefined
+          }
         />
       )}
     </motion.div>

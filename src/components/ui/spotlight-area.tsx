@@ -20,7 +20,7 @@ type SpotlightPosition = {
 export const SpotlightArea = ({
   children,
   radius = 350,
-  color = '#262626',
+  color = 'color-mix(in srgb, var(--color-bg-surface) 80%, transparent)',
   className,
   spotlightMode = 'cursor',
   spotlightPosition = { x: '50%', y: '50%' },
@@ -100,8 +100,8 @@ export const SpotlightArea = ({
             animationSpeed={5}
             containerClassName="bg-transparent absolute inset-0 pointer-events-none"
             colors={[
-              [59, 130, 246],
-              [139, 92, 246]
+              [91, 231, 255],
+              [244, 114, 255]
             ]}
             dotSize={3}
           />
