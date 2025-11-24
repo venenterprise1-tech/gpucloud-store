@@ -11,6 +11,8 @@ Main site for GPUcloud Store.
 
 ## TODO
 
+- Make simple-search and halo-search share as much code as possible
+
 - Add hybrid server/client form validation helpers
 - INTL w/ autodetect & fallbacks (English/German/Portuguese)
 - Add GTM support

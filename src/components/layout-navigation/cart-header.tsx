@@ -1,6 +1,7 @@
 'use client';
 
 import { ShoppingCart, Trash2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import {
@@ -13,12 +14,28 @@ import {
 import { useCartStore } from '@/stores/cart';
 
 export const CartHeader = () => {
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const [isOpen, setIsOpen] = useState(false);
   const items = useCartStore(state => state.items);
   const removeItem = useCartStore(state => state.removeItem);
   const getTotalItems = useCartStore(state => state.getTotalItems);
 
   const itemCount = getTotalItems();
+
+  const handleContactSales = () => {
+    setIsOpen(false);
+    // Navigate to test page with contact anchor (locale-aware)
+    router.push(`/${locale}/test#contact`);
+    // Small delay to ensure navigation completes before scrolling
+    setTimeout(() => {
+      const contactSection = document.getElementById('contact');
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
 
   return (
     <>
@@ -101,10 +118,7 @@ export const CartHeader = () => {
                 <div className="border-t-border/40 mt-auto border-t pt-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      // TODO: Navigate to contact form with cart details
-                      console.log('Contact representative with order:', items);
-                    }}
+                    onClick={handleContactSales}
                     className="bg-ui-active-soft hover:bg-ui-active flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition"
                   >
                     Contact Sales Representative

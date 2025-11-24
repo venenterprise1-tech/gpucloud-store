@@ -47,6 +47,7 @@ export const SimpleSearch = ({
   const [dialogIndex, setDialogIndex] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const isClosingDialogRef = useRef(false);
+  const shouldScrollRef = useRef(false);
   const searchId = useId();
 
   const options = [
@@ -124,15 +125,18 @@ export const SimpleSearch = ({
       if (!isOpen && value.trim().length > 0) {
         setIsOpen(true);
         setActiveIndex(prev => prev ?? 0);
+        shouldScrollRef.current = true;
         return;
       }
 
+      shouldScrollRef.current = true;
       setActiveIndex(prev => {
         const next = prev === null ? 0 : prev + 1 > maxIndex ? 0 : prev + 1;
         return next;
       });
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
+      shouldScrollRef.current = true;
       setActiveIndex(prev => {
         const next =
           prev === null ? maxIndex : prev - 1 < 0 ? maxIndex : prev - 1;
@@ -147,13 +151,15 @@ export const SimpleSearch = ({
   };
 
   useEffect(() => {
-    if (activeIndex === null || !listRef.current) return;
+    if (activeIndex === null || !listRef.current || !shouldScrollRef.current)
+      return;
     const el = listRef.current.querySelector<HTMLElement>(
       `[data-option-index="${activeIndex}"]`
     );
     if (el) {
       el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
+    shouldScrollRef.current = false;
   }, [activeIndex]);
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -258,7 +264,14 @@ export const SimpleSearch = ({
                         activeIndex === index &&
                           'text-fg-main border-ui-active-soft border-l-2 bg-[color-mix(in_srgb,var(--color-bg-surface)_96%,transparent)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-border)_60%,transparent)]'
                       )}
-                      onSelect={() => setActiveIndex(index)}
+                      onMouseEnter={() => {
+                        shouldScrollRef.current = false;
+                        setActiveIndex(index);
+                      }}
+                      onSelect={() => {
+                        setActiveIndex(index);
+                        setDialogIndex(index);
+                      }}
                     >
                       <div className="flex w-full flex-col gap-1">
                         <div className="flex items-center justify-between gap-3">

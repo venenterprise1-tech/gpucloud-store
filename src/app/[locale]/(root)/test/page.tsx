@@ -1,9 +1,11 @@
 'use client';
 import { motion } from 'motion/react';
+import Link from 'next/link';
 import { useState } from 'react';
 
 import { ContactWithCartForm } from '@/components/forms/contact-with-cart-form';
 import { CartHeader } from '@/components/layout-navigation/cart-header';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -257,10 +259,23 @@ export default function TestPage() {
             </CardContent>
           </SpotlightArea>
         </Card>
+
+        {/* CTA Section */}
+        <div className="relative z-10 mt-16 flex justify-center">
+          <Button
+            asChild
+            className="rounded-full bg-linear-to-br from-cyan-400 to-blue-600 px-6 py-3 text-sm tracking-widest text-slate-950 uppercase shadow-[0_0_22px_rgba(0,255,255,0.9),0_0_46px_rgba(0,0,0,0.9)] transition-all duration-200 hover:from-cyan-400 hover:to-pink-500 hover:shadow-[0_0_30px_rgba(0,255,255,1),0_0_52px_rgba(0,0,0,1)]"
+          >
+            <Link href="#contact">Contact Us</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Contact Form Section */}
-      <section className="relative z-10 mx-auto w-full max-w-6xl px-6 py-20">
+      <section
+        id="contact"
+        className="relative z-10 mx-auto w-full max-w-6xl px-6 py-20"
+      >
         <div className="mb-8">
           <div className="text-fg-soft mb-2 text-xs tracking-[0.2em] uppercase">
             Get in Touch

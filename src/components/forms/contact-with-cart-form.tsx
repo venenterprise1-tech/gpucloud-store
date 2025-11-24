@@ -15,15 +15,32 @@ import { cn } from '@/lib/style';
 import type { CartItem } from '@/stores/cart';
 import { useCartStore } from '@/stores/cart';
 
-const contactFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  company: z.string().optional(),
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  role: z.string().optional(),
-  message: z.string().optional()
-});
+const createContactFormSchema = (items: CartItem[]) =>
+  z
+    .object({
+      name: z.string().min(1, 'Name is required'),
+      company: z.string().optional(),
+      email: z
+        .string()
+        .min(1, 'Email is required')
+        .email('Invalid email address'),
+      role: z.string().optional(),
+      message: z.string().optional()
+    })
+    .refine(
+      data => {
+        const hasConfigs = items.length > 0;
+        const hasMessage = data.message && data.message.trim().length > 0;
+        return hasConfigs || hasMessage;
+      },
+      {
+        message:
+          'Please either select GPU configurations above or provide details here.',
+        path: ['message']
+      }
+    );
 
-type ContactFormData = z.infer<typeof contactFormSchema>;
+type ContactFormData = z.infer<ReturnType<typeof createContactFormSchema>>;
 
 export function ContactWithCartForm() {
   const [formStatus, setFormStatus] = useState<{
@@ -40,26 +57,12 @@ export function ContactWithCartForm() {
     register,
     handleSubmit,
     reset,
-    setError,
     formState: { errors, isSubmitting }
   } = useForm<ContactFormData>({
-    resolver: zodResolver(contactFormSchema)
+    resolver: zodResolver(createContactFormSchema(items))
   });
 
   const onSubmit = async (data: ContactFormData) => {
-    // Validate that user has either added configs OR provided a message
-    const hasConfigs = items.length > 0;
-    const hasMessage = data.message?.trim().length > 0;
-
-    if (!hasConfigs && !hasMessage) {
-      setFormStatus({
-        type: 'error',
-        message:
-          'Please either select GPU configurations or provide additional requirements/comments.'
-      });
-      return;
-    }
-
     setFormStatus({ type: 'loading', message: '' });
 
     try {
@@ -203,9 +206,7 @@ export function ContactWithCartForm() {
               type="text"
               placeholder="John Doe"
               className="border-border/50 bg-bg-page text-fg-main placeholder:text-fg-muted/50 focus-visible:border-ui-active-soft focus-visible:ring-ui-active-soft/20"
-              {...register('name', {
-                required: 'Name is required'
-              })}
+              {...register('name')}
             />
             {errors.name && (
               <p className="text-ui-danger mt-1 text-xs">
@@ -243,13 +244,7 @@ export function ContactWithCartForm() {
               type="email"
               placeholder="john@acme.com"
               className="border-border/50 bg-bg-page text-fg-main placeholder:text-fg-muted/50 focus-visible:border-ui-active-soft focus-visible:ring-ui-active-soft/20"
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address'
-                }
-              })}
+              {...register('email')}
             />
             {errors.email && (
               <p className="text-ui-danger mt-1 text-xs">
