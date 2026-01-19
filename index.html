@@ -149,18 +149,10 @@
     }
 
     .logo-mark {
-      width: 26px;
-      height: 26px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 255, 255, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      color: #67fff6;
-      box-shadow:
-        0 0 12px rgba(0, 255, 255, 0.5),
-        0 0 24px rgba(0, 255, 255, 0.25);
+      width: 34px;
+      height: 22px;
+      display: block;
+      object-fit: contain;
     }
 
     .nav-links {
@@ -199,6 +191,7 @@
       font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+      color: #ffffff;
       cursor: pointer;
       transition: transform 0.15s ease-out, box-shadow 0.15s ease-out,
         background 0.2s ease-out;
@@ -751,7 +744,7 @@
     <header class="navbar">
       <div class="nav-inner">
         <div class="logo">
-          <div class="logo-mark">G</div>
+        <img class="logo-mark" src="GPUCloud Icon.svg" alt="GPUcloud.store logo" />
           <span>GPUcloud.store</span>
         </div>
         <nav class="nav-links">
@@ -793,9 +786,9 @@
             </div>
 
             <div class="hero-actions">
-              <button class="btn-primary" onclick="scrollToSection('contact')">
+              <a class="btn-primary" href="https://calendar.app.google/byDcJPq89PVyPSZP9" target="_blank" rel="noopener noreferrer">
                 Book a discovery call
-              </button>
+              </a>
               <button class="btn-ghost" onclick="scrollToSection('about')">
                 Learn more
               </button>
